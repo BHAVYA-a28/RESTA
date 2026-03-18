@@ -1,14 +1,39 @@
 {
-  "name": "restaurant-monorepo",
+  "name": "restaurant-next",
   "version": "1.0.0",
-  "description": "Multi-category Restaurant Reservation & Ordering System",
   "private": true,
   "scripts": {
-    "install:client": "cd client && npm install --legacy-peer-deps",
-    "install:server": "cd server && npm install",
-    "install-all": "npm install --legacy-peer-deps && npm run install:client && npm run install:server",
-    "build:client": "cd client && npm run build",
-    "build:server": "cd server && npm run build",
-    "vercel-build": "npm run build:client"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.2.1",
+    "axios": "latest",
+    "bcryptjs": "latest",
+    "clsx": "latest",
+    "dotenv": "latest",
+    "framer-motion": "latest",
+    "jsonwebtoken": "latest",
+    "lucide-react": "latest",
+    "mongoose": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "tailwind-merge": "latest"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "latest",
+    "@types/jsonwebtoken": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "autoprefixer": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "postcss": "latest",
+    "tailwindcss": "latest",
+    "typescript": "latest"
   }
 }
