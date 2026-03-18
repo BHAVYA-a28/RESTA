@@ -4,9 +4,9 @@
   "description": "Multi-category Restaurant Reservation & Ordering System",
   "private": true,
   "scripts": {
-    "install:client": "cd client && npm install",
+    "install:client": "cd client && npm install --legacy-peer-deps",
     "install:server": "cd server && npm install",
-    "install-all": "npm install && npm run install:client && npm run install:server",
+    "install-all": "npm install --legacy-peer-deps && npm run install:client && npm run install:server",
     "build:client": "cd client && npm run build",
     "build:server": "cd server && npm run build",
     "vercel-build": "npm run build:client"
