@@ -1,14 +1,16 @@
 "use client";
 import React, { useState } from 'react';
 import { useCart } from '@/context/CartContext';
-import { X, Minus, Plus, Utensils, Trash2, ArrowRight, Loader2, CheckCircle2, Hash } from 'lucide-react';
+import { X, Minus, Plus, Utensils, Trash2, ArrowRight, Loader2, CheckCircle2, Hash, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
 const CartSidebar = () => {
-  const { cart, removeFromCart, updateQuantity, isCartOpen, setIsCartOpen, tableNumber, setTableNumber, clearCart } = useCart();
+  const { cart, removeFromCart, updateQuantity, addToCart, isCartOpen, setIsCartOpen, tableNumber, setTableNumber, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  
+  const [showRecommendations, setShowRecommendations] = useState(true);
   
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -153,34 +155,78 @@ const CartSidebar = () => {
                   )}
                 </div>
 
+                {/* Upselling Section */}
+                <AnimatePresence>
+                  {showRecommendations && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 relative overflow-hidden"
+                    >
+                       <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-[9px] font-black font-headings text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                             <Star size={10} className="text-primary" fill="currentColor" />
+                             Try These
+                          </h3>
+                          <button 
+                            onClick={() => setShowRecommendations(false)}
+                            className="p-1 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors"
+                          >
+                            <X size={10} className="text-gray-400" />
+                          </button>
+                       </div>
+                       <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                          {[
+                            { _id: 'mock-rec-1', name: 'Cold Coffee', price: 180, image: 'https://images.unsplash.com/photo-1544145945-f904253d0c7b?auto=format&fit=crop&w=400&q=80' },
+                            { _id: 'mock-rec-2', name: 'Butter Naan', price: 89, image: 'https://images.unsplash.com/photo-1601303516536-225654037bt5?auto=format&fit=crop&w=400&q=80' },
+                            { _id: 'mock-rec-3', name: 'Gulab Jamun', price: 149, image: 'https://images.unsplash.com/photo-1589119908995-c6837fa14848?auto=format&fit=crop&w=400&q=80' }
+                          ].map((item) => (
+                            <div key={item._id} className="shrink-0 w-28 bg-white p-2 rounded-xl border border-gray-100 shadow-sm hover:translate-y-[-2px] transition-all group/rec">
+                               <div className="h-16 w-full rounded-lg overflow-hidden mb-2 bg-gray-50">
+                                  <img src={item.image} alt={item.name} className="h-full w-full object-cover group-hover/rec:scale-110 transition-transform" />
+                               </div>
+                               <h4 className="text-[8px] font-bold text-gray-900 line-clamp-1 mb-0.5">{item.name}</h4>
+                               <div className="flex items-center justify-between">
+                                  <p className="text-[9px] font-black text-primary">₹{item.price}</p>
+                                  <button onClick={() => addToCart(item as any)} className="p-1 bg-orange-50 text-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
+                                     <Plus size={8} strokeWidth={3} />
+                                  </button>
+                               </div>
+                            </div>
+                          ))}
+                       </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {cart.length > 0 && (
-                  <div className="p-6 md:p-8 bg-white border-t border-gray-50 space-y-6">
+                  <div className="p-4 md:p-6 bg-white border-t border-gray-50 space-y-4">
                     <div className="flex justify-between items-end">
                       <div>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Billed To Table {tableNumber || '--'}</p>
-                        <p className="text-4xl font-black text-gray-900 tracking-tighter">₹{totalPrice}</p>
+                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Table {tableNumber || '--'}</p>
+                        <p className="text-2xl font-black text-gray-900 tracking-tighter">₹{totalPrice}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Inclusive of Service Tax</p>
+                        <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">Incl. Taxes</p>
                       </div>
                     </div>
                     
                     <button 
                       onClick={handlePlaceOrder}
                       disabled={isSubmitting || !tableNumber}
-                      className="w-full bg-primary text-white py-6 rounded-[32px] font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center space-x-3 shadow-2xl shadow-orange-200 relative group overflow-hidden disabled:opacity-50 disabled:grayscale"
+                      className="w-full bg-primary text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center space-x-2 shadow-xl shadow-orange-100 relative group overflow-hidden disabled:opacity-50"
                     >
-                      <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                       {isSubmitting ? (
-                        <Loader2 className="animate-spin h-5 w-5" />
+                        <Loader2 className="animate-spin h-4 w-4" />
                       ) : (
                         <>
                           <span>Place Official Order</span>
-                          <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                          <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                         </>
                       )}
                     </button>
-                    <p className="text-[9px] text-gray-300 text-center font-bold uppercase tracking-[0.2em]">Chef is notified immediately upon order placement.</p>
+                    <p className="text-[8px] text-gray-300 text-center font-bold uppercase tracking-widest">Notifies kitchen immediately.</p>
                   </div>
                 )}
               </>

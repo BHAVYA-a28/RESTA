@@ -61,7 +61,7 @@ export default function Home() {
               {[
                 { label: 'Fresh Ingredients', sub: 'Farm-to-table promise', val: '100%' },
                 { label: 'Happy Customers', sub: 'Across the city', val: '15k+' },
-                { label: 'Secret Recipes', sub: 'Handcrafted by chefs', val: '50+' },
+                { label: 'Secret Recipes', sub: 'Handcrafted by chefs', val: '120+' },
                 { label: 'Years Experience', sub: 'In the culinary arts', val: '12+' },
               ].map((item, idx) => (
                 <div key={idx} className="text-center group p-10 bg-white rounded-[40px] border border-gray-100 hover:border-primary/20 transition-all hover:shadow-2xl hover:shadow-orange-100 shadow-sm relative overflow-hidden">
@@ -74,6 +74,7 @@ export default function Home() {
            </div>
         </div>
       </section>
+
 
       <FreelancerShowcase />
     </div>

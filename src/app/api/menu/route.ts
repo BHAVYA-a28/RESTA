@@ -26,7 +26,10 @@ export async function verifyToken(req: NextRequest) {
   }
 }
 
-const MOCK_MENU = [
+import { generateSeedItems } from '@/lib/seedGenerator';
+
+// Base items for the mock menu
+const BASE_MOCK = [
   // STARTERS (TANDOOR)
   {
     _id: "mock-1",
@@ -63,66 +66,29 @@ const MOCK_MENU = [
     isPopular: true,
     isAvailable: true
   },
-  {
-    _id: "mock-m2",
-    name: 'Kashmiri Mutton Rogan Josh',
-    description: 'A signature mutton recipe with a perfect balance of traditional Kashmiri spices and tender lamb chunks.',
-    price: 529,
-    category: 'Mains',
-    dietary: 'Non-Veg',
-    image: 'https://images.unsplash.com/photo-1545243191-240acc07f282?auto=format&fit=crop&w=400&q=80',
-    isPopular: false,
-    isAvailable: true
-  },
-
-  // RICE & BIRYANI
-  {
-    _id: "mock-b1",
-    name: 'Lucknowi Dum Biryani',
-    description: 'Fragrant basmati rice and tender meat pieces cooked on slow fire with saffron and aromatic spices.',
-    price: 449,
-    category: 'Biryani',
-    dietary: 'Non-Veg',
-    image: 'https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?auto=format&fit=crop&w=400&q=80',
-    isPopular: true,
-    isAvailable: true
-  },
-
-  // BREADS
-  {
-    _id: "mock-br1",
-    name: 'Garlic Butter Naan',
-    description: 'Traditional Indian leavened bread infused with fresh garlic and cilantro, brushed with pure butter.',
-    price: 69,
-    category: 'Breads',
-    dietary: 'Veg',
-    image: 'https://images.unsplash.com/photo-1601303516536-225654037bt5?auto=format&fit=crop&w=400&q=80',
-    isPopular: false,
-    isAvailable: true
-  },
-
-  // DESSERTS
-  {
-    _id: "mock-d1",
-    name: 'Kesari Gulab Jamun',
-    description: 'Golden fried milk dumplings soaked in saffron-infused warm sugar syrup. Served as a pair.',
-    price: 149,
-    category: 'Desserts',
-    dietary: 'Veg',
-    image: 'https://images.unsplash.com/photo-1589119908995-c6837fa14848?auto=format&fit=crop&w=400&q=80',
-    isPopular: false,
-    isAvailable: true
-  }
+  // ... more can be added
 ];
+
+// Generate 120+ items for a rich mock experience
+const GENERATED_MOCK = generateSeedItems(20).map((item, idx) => ({
+    ...item,
+    _id: `mock-gen-${idx}`
+}));
+
+const MOCK_MENU = [...BASE_MOCK, ...GENERATED_MOCK];
 
 export async function GET() {
   try {
     try {
       await withTimeout(connectDB(), 3000);
       const items = await Menu.find({});
-      return NextResponse.json(items, { status: 200 });
+      if (items.length > 0) {
+        return NextResponse.json(items, { status: 200 });
+      }
+      // If DB is empty, still serve mock for better user experience initially
+      return NextResponse.json(MOCK_MENU, { status: 200 });
     } catch (e: any) {
-       console.warn("Serving MOCK MENU due to DB offline:", e.message);
+       console.warn("Serving MOCK MENU due to DB offline or empty:", e.message);
        return NextResponse.json(MOCK_MENU, { status: 200 });
     }
   } catch (error: any) {
