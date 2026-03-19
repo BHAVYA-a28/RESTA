@@ -7,6 +7,7 @@ export interface IMenu extends Document {
   category: string;
   image: string;
   isPopular?: boolean;
+  isAvailable: boolean;
   dietary?: 'Veg' | 'Non-Veg' | 'None';
 }
 
@@ -18,6 +19,7 @@ const menuSchema = new Schema<IMenu>(
     category: { type: String, required: true },
     image: { type: String, required: true },
     isPopular: { type: Boolean, default: false },
+    isAvailable: { type: Boolean, default: true },
     dietary: { type: String, enum: ['Veg', 'Non-Veg', 'None'], default: 'None' },
   },
   { timestamps: true }

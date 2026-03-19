@@ -3,26 +3,45 @@ import connectDB from '@/lib/db';
 import { Menu } from '@/models/Menu';
 import { verifyToken } from '../route';
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+const withTimeout = (promise: Promise<any>, timeoutMs: number) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timed out')), timeoutMs))
+  ]);
+};
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = await params;
-    if (!await verifyToken(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    await connectDB();
+    if (!await verifyToken(req)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { id } = params;
     const data = await req.json();
+    await withTimeout(connectDB(), 5000);
     const item = await Menu.findByIdAndUpdate(id, data, { new: true });
-    return NextResponse.json(item);
+    if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    return NextResponse.json(item, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = await params;
-    if (!await verifyToken(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    await connectDB();
-    await Menu.findByIdAndDelete(id);
-    return NextResponse.json({ message: 'Menu item deleted' });
+    if (!await verifyToken(req)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { id } = params;
+    await withTimeout(connectDB(), 5000);
+    const item = await Menu.findByIdAndDelete(id);
+    if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    return NextResponse.json({ message: 'Deleted' }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }

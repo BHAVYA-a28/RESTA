@@ -36,7 +36,8 @@ const MOCK_MENU = [
     category: 'Starters',
     dietary: 'Veg',
     image: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=400&q=80',
-    isPopular: true
+    isPopular: true,
+    isAvailable: true
   },
   {
     _id: "mock-s2",
@@ -46,7 +47,8 @@ const MOCK_MENU = [
     category: 'Starters',
     dietary: 'Non-Veg',
     image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=400&q=80',
-    isPopular: true
+    isPopular: true,
+    isAvailable: true
   },
   
   // MAIN COURSE (THE HANDI)
@@ -58,7 +60,8 @@ const MOCK_MENU = [
     category: 'Mains',
     dietary: 'Veg',
     image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=400&q=80',
-    isPopular: true
+    isPopular: true,
+    isAvailable: true
   },
   {
     _id: "mock-m2",
@@ -68,7 +71,8 @@ const MOCK_MENU = [
     category: 'Mains',
     dietary: 'Non-Veg',
     image: 'https://images.unsplash.com/photo-1545243191-240acc07f282?auto=format&fit=crop&w=400&q=80',
-    isPopular: false
+    isPopular: false,
+    isAvailable: true
   },
 
   // RICE & BIRYANI
@@ -80,7 +84,8 @@ const MOCK_MENU = [
     category: 'Biryani',
     dietary: 'Non-Veg',
     image: 'https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?auto=format&fit=crop&w=400&q=80',
-    isPopular: true
+    isPopular: true,
+    isAvailable: true
   },
 
   // BREADS
@@ -92,7 +97,8 @@ const MOCK_MENU = [
     category: 'Breads',
     dietary: 'Veg',
     image: 'https://images.unsplash.com/photo-1601303516536-225654037bt5?auto=format&fit=crop&w=400&q=80',
-    isPopular: false
+    isPopular: false,
+    isAvailable: true
   },
 
   // DESSERTS
@@ -104,21 +110,21 @@ const MOCK_MENU = [
     category: 'Desserts',
     dietary: 'Veg',
     image: 'https://images.unsplash.com/photo-1589119908995-c6837fa14848?auto=format&fit=crop&w=400&q=80',
-    isPopular: false
+    isPopular: false,
+    isAvailable: true
   }
 ];
 
 export async function GET() {
   try {
     try {
-      // 3 second limit for DB connection
       await withTimeout(connectDB(), 3000);
+      const items = await Menu.find({});
+      return NextResponse.json(items, { status: 200 });
     } catch (e: any) {
-       console.warn("Serving MOCK MENU due to connection timeout or error:", e.message);
+       console.warn("Serving MOCK MENU due to DB offline:", e.message);
        return NextResponse.json(MOCK_MENU, { status: 200 });
     }
-    const items = await Menu.find({});
-    return NextResponse.json(items, { status: 200 });
   } catch (error: any) {
     console.error('Ultimate GET Fallback:', error);
     return NextResponse.json(MOCK_MENU, { status: 200 });

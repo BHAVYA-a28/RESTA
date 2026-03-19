@@ -39,6 +39,23 @@ const CartSidebar = () => {
     }
   };
 
+  const handleRequestBill = async () => {
+    if (!tableNumber) return alert("Enter table number to request bill.");
+    if (!confirm("Are you sure you want to request the final bill for Table " + tableNumber + "?")) return;
+    
+    setIsSubmitting(true);
+    try {
+      await axios.patch('/api/orders', { tableNumber, status: 'bill_requested' });
+      alert("Bill requested! Waiter will bring it to Table " + tableNumber + " shortly.");
+      setIsCartOpen(false);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to request bill. Please call a server.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <AnimatePresence>
       {isCartOpen && (
@@ -90,9 +107,18 @@ const CartSidebar = () => {
                            value={tableNumber}
                            onChange={(e) => setTableNumber(e.target.value)}
                          />
-                      </div>
-                   </div>
-                </div>
+                       </div>
+                       {tableNumber && (
+                          <button 
+                            onClick={handleRequestBill}
+                            disabled={isSubmitting}
+                            className="bg-primary/10 text-primary px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all border border-primary/20"
+                          >
+                             Request Bill
+                          </button>
+                       )}
+                    </div>
+                 </div>
 
                 <div className="flex-grow overflow-y-auto p-4 md:p-8 space-y-6">
                   {cart.length === 0 ? (

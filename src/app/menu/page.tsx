@@ -12,6 +12,7 @@ interface MenuItem {
   price: number;
   category: string;
   image: string;
+  isAvailable: boolean;
   dietary?: 'Veg' | 'Non-Veg' | 'None';
   isPopular?: boolean;
 }
@@ -167,9 +168,12 @@ const Menu = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          key={item._id}
-                          className="group flex gap-8 md:gap-14 items-start justify-between relative pb-12 border-b border-gray-50 last:border-0"
+                           key={item._id}
+                           className={`group flex gap-8 md:gap-14 items-start justify-between relative pb-12 border-b border-gray-50 last:border-0 ${!item.isAvailable && 'opacity-60 grayscale-[0.5]'}`}
                         >
+                           {!item.isAvailable && (
+                              <div className="absolute top-0 right-0 z-10 bg-red-500 text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-bl-3xl shadow-lg">Sold Out</div>
+                           )}
                           {/* Item Details (Left) */}
                           <div className="flex-grow space-y-3">
                             <div className="flex items-center gap-3">
@@ -184,8 +188,8 @@ const Menu = () => {
                                 </div>
                               )}
                             </div>
-                            <h3 className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-primary transition-colors tracking-tight leading-tight">{item.name}</h3>
-                            <p className="text-gray-900 font-black text-lg">₹{item.price}</p>
+                             <h3 className={`text-xl md:text-2xl font-bold text-gray-900 group-hover:text-primary transition-colors tracking-tight leading-tight ${!item.isAvailable && 'line-through decoration-red-500/40'}`}>{item.name}</h3>
+                             <p className="text-gray-900 font-black text-lg">₹{item.price}</p>
                             <p className="text-gray-400 text-sm leading-relaxed max-w-lg italic font-medium line-clamp-2 md:line-clamp-none">
                               "{item.description}"
                             </p>
@@ -210,18 +214,23 @@ const Menu = () => {
                                      <Minus size={16} strokeWidth={3} className="group-hover/minus:scale-110 transition-transform" />
                                   </button>
                                   <span className="font-black text-primary text-sm min-w-4 text-center">{itemQuantity}</span>
-                                  <button onClick={(e) => { e.stopPropagation(); addToCart(item as any); }} className="p-1 px-2 text-primary font-black hover:bg-orange-50 rounded-lg group/plus">
+                                   <button onClick={(e) => { e.stopPropagation(); addToCart(item as any); }} className="p-1 px-2 text-primary font-black hover:bg-orange-50 rounded-lg group/plus">
                                      <Plus size={16} strokeWidth={3} className="group-hover/plus:scale-110 transition-transform" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); addToCart(item as any); }}
-                                  className="w-full bg-white text-primary border border-gray-100 shadow-xl py-3 rounded-xl text-xs font-black uppercase tracking-[0.2em] hover:bg-orange-50 transition-all active:scale-95 ring-4 ring-white"
-                                >
-                                  Add +
-                                </button>
-                              )}
+                                   </button>
+                                 </div>
+                               ) : (
+                                 <button
+                                   onClick={(e) => { e.stopPropagation(); if(item.isAvailable) addToCart(item as any); }}
+                                   disabled={!item.isAvailable}
+                                   className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all active:scale-95 ring-4 ring-white shadow-xl ${
+                                     item.isAvailable 
+                                       ? 'bg-white text-primary border border-gray-100 hover:bg-orange-50' 
+                                       : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed shadow-none ring-gray-50'
+                                   }`}
+                                 >
+                                   {item.isAvailable ? 'Add +' : 'Sold Out'}
+                                 </button>
+                               )}
                             </div>
                           </div>
                         </motion.div>

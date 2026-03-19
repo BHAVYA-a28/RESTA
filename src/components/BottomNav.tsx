@@ -17,6 +17,7 @@ const BottomNav = () => {
   const links = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Menu', path: '/menu', icon: Utensils },
+    { name: 'Orders', path: '/orders', icon: Star },
     { name: 'Contact', path: '/contact', icon: Phone },
   ];
 

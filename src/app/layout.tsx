@@ -6,6 +6,7 @@ import { CartProvider } from '@/context/CartContext';
 import Navbar from '@/components/Navbar';
 import BottomNav from '@/components/BottomNav';
 import CartSidebar from '@/components/CartSidebar';
+import QRTableWatcher from '@/components/QRTableWatcher';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 
@@ -28,6 +29,7 @@ export default function RootLayout({
               <Navbar />
               <BottomNav />
               <CartSidebar />
+              <QRTableWatcher />
               <main className="flex-grow pt-16 md:pt-20 pb-36 md:pb-0">
                 {children}
               </main>

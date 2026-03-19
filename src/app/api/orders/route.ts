@@ -59,17 +59,67 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PATCH(req: NextRequest) {
+  try {
+    const { tableNumber, orderId, status } = await req.json();
+    
+    try {
+      await withTimeout(connectDB(), 3000);
+      
+      if (orderId) {
+        // Individual order update
+        const updated = await Order.findByIdAndUpdate(orderId, { $set: { status } }, { new: true });
+        return NextResponse.json(updated);
+      } else if (tableNumber) {
+        // Bulk table update (e.g., bill request)
+        await Order.updateMany(
+          { tableNumber, status: { $nin: ['completed', 'cancelled'] } },
+          { $set: { status: status || 'bill_requested' } }
+        );
+        return NextResponse.json({ success: true });
+      }
+      return NextResponse.json({ error: 'Missing tableNumber or orderId' }, { status: 400 });
+    } catch (e: any) {
+      // Mock fallback
+      if (orderId) {
+        const order = mockOrders.find(o => o._id === orderId);
+        if (order) order.status = status;
+        return NextResponse.json({ success: true, isDemo: true });
+      } else if (tableNumber) {
+        mockOrders.forEach(o => {
+          if (o.tableNumber === tableNumber && !['completed', 'cancelled'].includes(o.status)) {
+            o.status = status || 'bill_requested';
+          }
+        });
+        return NextResponse.json({ success: true, isDemo: true });
+      }
+      return NextResponse.json({ error: 'Fallback failed' }, { status: 500 });
+    }
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const tableNum = searchParams.get('table');
+
     let dbOrders = [];
     try {
       await withTimeout(connectDB(), 3000);
-      dbOrders = await Order.find({}).sort({ createdAt: -1 });
+      const query = tableNum ? { tableNumber: tableNum } : {};
+      dbOrders = await Order.find(query).sort({ createdAt: -1 });
     } catch (e) {
       console.warn('GET /orders: DB offline, showing mock data only.');
     }
 
-    const combined = [...mockOrders, ...dbOrders];
+    let filteredMocks = mockOrders;
+    if (tableNum) {
+      filteredMocks = mockOrders.filter(o => o.tableNumber === tableNum);
+    }
+
+    const combined = [...filteredMocks, ...dbOrders];
     return NextResponse.json(combined);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { addMenuItem, deleteMenuItem, getMenu, getReservationsList } from '@/api/api';
-import { Plus, Trash2, Calendar, ClipboardList, LogOut, LayoutDashboard, Coffee, Upload, Users, Clock, Sparkles, Star, ChevronRight, Loader2, Hash, ShoppingBag, CheckCircle2 } from 'lucide-react';
+import { addMenuItem, deleteMenuItem, getMenu, getReservationsList, updateMenuItem } from '@/api/api';
+import { Plus, Trash2, Calendar, ClipboardList, LogOut, LayoutDashboard, Coffee, Upload, Users, Clock, Sparkles, Star, ChevronRight, Loader2, Hash, ShoppingBag, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import axios from 'axios';
@@ -15,6 +15,7 @@ interface MenuItem {
   price: number;
   category: string;
   image: string;
+  isAvailable: boolean;
   dietary?: 'Veg' | 'Non-Veg' | 'None';
 }
 
@@ -64,6 +65,20 @@ const Admin = () => {
     dietary: 'Veg',
   });
 
+  const [orderFilter, setOrderFilter] = useState<'active' | 'history'>('active');
+  const [lastOrderCount, setLastOrderCount] = useState(0);
+  const [lastResCount, setLastResCount] = useState(0);
+  const [hasNewAlert, setHasNewAlert] = useState(false);
+
+  // Sound effect for new orders
+  const playAlert = () => {
+    try {
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      audio.volume = 0.5;
+      audio.play();
+    } catch (e) { console.error("Sound play failed", e); }
+  };
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
@@ -73,35 +88,52 @@ const Admin = () => {
   useEffect(() => {
     if (user && token) {
       fetchData();
+      // Setup real-time polling (every 10 seconds)
+      const interval = setInterval(fetchData, 10000);
+      return () => clearInterval(interval);
     }
-  }, [user, token, activeTab]);
+  }, [user, token]);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (isBackground = false) => {
+    if (!isBackground && !loading) setLoading(true);
     try {
-      if (activeTab === 'menu') {
-        const { data } = await getMenu();
-        setMenuItems(data);
-      } else if (activeTab === 'reservations') {
-        const { data } = await getReservationsList(token!);
-        setReservations(data);
-      } else if (activeTab === 'orders') {
-        const { data } = await axios.get('/api/orders');
-        setOrders(data);
+      const [{ data: menuData }, { data: resData }, { data: orderData }] = await Promise.all([
+        getMenu(),
+        getReservationsList(token!),
+        axios.get('/api/orders')
+      ]);
+
+      setMenuItems(menuData);
+      setReservations(resData);
+      setOrders(orderData);
+
+      // Check for New Arrivals to trigger sound/visual alert
+      if (orderData.length > lastOrderCount && lastOrderCount !== 0) {
+        playAlert();
+        setHasNewAlert(true);
       }
+      if (resData.length > lastResCount && lastResCount !== 0) {
+        playAlert();
+        setHasNewAlert(true);
+      }
+      
+      setLastOrderCount(orderData.length);
+      setLastResCount(resData.length);
+
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
-       // Future implementation: status update API
-       alert(`Order ${orderId} status set to ${status}`);
+       await axios.patch('/api/orders', { orderId, status }); // Need to update API to handle orderId
+       fetchData(true);
     } catch (e) {
        console.error(e);
+       alert("Failed to update status");
     }
   };
 
@@ -126,6 +158,16 @@ const Admin = () => {
       fetchData();
     } catch (error) {
       console.error('Error deleting item', error);
+    }
+  };
+
+  const toggleAvailability = async (item: MenuItem) => {
+    try {
+      if (!token) return;
+      await updateMenuItem(item._id, { isAvailable: !item.isAvailable }, token);
+      fetchData();
+    } catch (error) {
+      console.error('Error toggling availability', error);
     }
   };
 
@@ -169,17 +211,18 @@ const Admin = () => {
                  <Coffee size={20} /> Menu Items
                </button>
                <button
-                 onClick={() => setActiveTab('orders')}
-                 className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === 'orders' ? 'bg-primary text-white shadow-2xl shadow-orange-200 scale-105' : 'bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
-               >
-                 <ShoppingBag size={20} /> Live Orders
-               </button>
-               <button
-                 onClick={() => setActiveTab('reservations')}
-                 className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === 'reservations' ? 'bg-primary text-white shadow-2xl shadow-orange-200 scale-105' : 'bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
-               >
-                 <Calendar size={20} /> Reservations
-               </button>
+                  onClick={() => { setActiveTab('orders'); setHasNewAlert(false); }}
+                  className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === 'orders' ? 'bg-primary text-white shadow-2xl shadow-orange-200 scale-105' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
+                >
+                  <div className="flex items-center gap-4"><ShoppingBag size={20} /> Live Orders</div>
+                  {hasNewAlert && activeTab !== 'orders' && <div className="h-2 w-2 bg-white rounded-full animate-ping"></div>}
+                </button>
+                <button
+                  onClick={() => setActiveTab('reservations')}
+                  className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === 'reservations' ? 'bg-primary text-white shadow-2xl shadow-orange-200 scale-105' : 'bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
+                >
+                  <Calendar size={20} /> Reservations
+                </button>
             </div>
          </div>
 
@@ -310,11 +353,25 @@ const Admin = () => {
                {menuItems.map((item) => (
                   <div key={item._id} className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm flex items-center gap-6">
                      <img src={item.image} className="h-20 w-20 rounded-2xl object-cover shrink-0" alt={item.name} />
-                     <div className="flex-grow">
+                      <div className="flex-grow">
                         <h4 className="font-bold text-gray-900">{item.name}</h4>
-                        <p className="text-primary font-black text-sm">₹{item.price}</p>
+                        <div className="flex items-center gap-3">
+                           <p className="text-primary font-black text-sm">₹{item.price}</p>
+                           <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${item.isAvailable ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'}`}>
+                              {item.isAvailable ? 'Available' : 'Sold Out'}
+                           </span>
+                        </div>
                      </div>
-                     <button onClick={() => handleDeleteItem(item._id)} className="bg-red-50 text-red-500 p-3 rounded-xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18}/></button>
+                     <div className="flex gap-2">
+                        <button 
+                           onClick={() => toggleAvailability(item)} 
+                           className={`p-3 rounded-xl transition-all ${item.isAvailable ? 'bg-gray-50 text-gray-400 hover:bg-orange-50 hover:text-primary' : 'bg-primary text-white shadow-lg shadow-orange-100'}`}
+                           title={item.isAvailable ? "Mark as Sold Out" : "Mark as Available"}
+                        >
+                           {item.isAvailable ? <Eye size={18}/> : <EyeOff size={18}/>}
+                        </button>
+                        <button onClick={() => handleDeleteItem(item._id)} className="bg-red-50 text-red-500 p-3 rounded-xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18}/></button>
+                     </div>
                   </div>
                ))}
             </div>
@@ -326,21 +383,39 @@ const Admin = () => {
              <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="h-14 w-14 bg-orange-50 text-primary rounded-[20px] border border-orange-100 flex items-center justify-center shadow-sm"><ShoppingBag size={26}/></div>
-                  <h3 className="text-3xl font-bold font-headings text-gray-900">Live Kitchen Orders</h3>
+                  <h3 className="text-3xl font-bold font-headings text-gray-900">{orderFilter === 'active' ? 'Live Kitchen Orders' : 'Order History'}</h3>
                 </div>
-                <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full border border-green-100">
-                   <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-                   <span className="text-[10px] font-black text-green-700 uppercase tracking-widest">Real-time Feedback</span>
+                <div className="flex items-center gap-2 bg-gray-100 p-1.5 rounded-2xl border border-gray-200">
+                    <button 
+                        onClick={() => setOrderFilter('active')}
+                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${orderFilter === 'active' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}
+                    >
+                        Active
+                    </button>
+                    <button 
+                        onClick={() => setOrderFilter('history')}
+                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${orderFilter === 'history' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}
+                    >
+                        History
+                    </button>
                 </div>
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {orders.map((order) => (
+                {orders
+                  .filter(o => orderFilter === 'active' 
+                    ? !['completed', 'cancelled'].includes(o.status) 
+                    : ['completed', 'cancelled'].includes(o.status)
+                  )
+                  .map((order) => (
                    <div key={order._id} className="bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden flex flex-col group">
                       <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
                          <div className="flex items-center gap-3 text-primary font-black">
                             <span className="bg-primary text-white h-10 w-10 rounded-xl flex items-center justify-center shadow-lg"><Hash size={20}/></span>
                             <span className="text-2xl font-headings uppercase tracking-tighter">Table {order.tableNumber}</span>
+                            {order.status === 'bill_requested' && (
+                                <span className="ml-2 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded animate-pulse">BILL REQUESTED</span>
+                             )}
                          </div>
                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
@@ -362,15 +437,17 @@ const Admin = () => {
                             <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">Order Total</p>
                             <p className="text-2xl font-black text-gray-900 tracking-tighter">₹{order.totalAmount}</p>
                          </div>
-                         <div className="flex gap-2">
-                             <button onClick={() => updateOrderStatus(order._id, 'served')} className="bg-green-50 text-green-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-green-100 hover:bg-green-600 hover:text-white transition-all">Mark Served</button>
+                          <div className="flex gap-2">
+                             {order.status !== 'completed' && (
+                                <button onClick={() => updateOrderStatus(order._id, 'completed')} className="bg-green-50 text-green-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-green-100 hover:bg-green-600 hover:text-white transition-all underline decoration-green-200">Complete</button>
+                             )}
                              <button onClick={() => updateOrderStatus(order._id, 'cancelled')} className="bg-red-50 text-red-500 p-2 rounded-xl border border-red-100 hover:bg-red-500 hover:text-white transition-all"><Trash2 size={16}/></button>
-                         </div>
+                          </div>
                       </div>
                    </div>
                 ))}
                 
-                {orders.length === 0 && !loading && (
+                {orders.filter(o => orderFilter === 'active' ? !['completed', 'cancelled'].includes(o.status) : ['completed', 'cancelled'].includes(o.status)).length === 0 && !loading && (
                    <div className="col-span-full py-24 text-center bg-white border border-dashed border-gray-100 rounded-[50px] space-y-6">
                       <ShoppingBag className="h-16 w-16 text-gray-100 mx-auto" />
                       <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Waiting for incoming orders...</p>
