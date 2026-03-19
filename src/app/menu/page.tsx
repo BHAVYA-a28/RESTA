@@ -333,14 +333,14 @@ const Menu = () => {
         )}
       </div>
 
-      {/* Floating Browse Menu Button (Mobile Optimization) */}
+      {/* Floating Browse Menu Button (Mobile Optimization) - Fixed to bottom right like Zomato/Swiggy */}
       {!loading && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] md:bottom-12">
+        <div className="fixed bottom-24 right-6 z-[100] md:bottom-12 md:right-12 md:left-auto md:translate-x-0">
            <button 
              onClick={() => setShowBrowseMenu(true)}
-             className="bg-gray-900 text-white px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-gray-900/40 flex items-center gap-3 active:scale-90 transition-all border border-white/10"
+             className="bg-gray-900 text-white px-6 py-4 rounded-full font-black text-[10px] md:text-xs uppercase tracking-[0.2em] shadow-2xl shadow-gray-900/40 flex items-center gap-3 active:scale-90 hover:scale-105 transition-all border border-white/10 group"
            >
-             <List size={18} className="text-primary" />
+             <List size={18} className="text-primary transition-transform group-hover:rotate-12" />
              Browse Menu
            </button>
         </div>
