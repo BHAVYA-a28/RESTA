@@ -24,6 +24,7 @@ const Menu = () => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [showBrowseMenu, setShowBrowseMenu] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { addToCart, updateQuantity, cart } = useCart();
   const categoryRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -39,6 +40,15 @@ const Menu = () => {
       }
     };
     fetchMenu();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Threshold of 50px to detect scrolling
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const allCategories = ['All', ...Array.from(new Set(menuItems.map(item => item.category)))];
@@ -103,7 +113,7 @@ const Menu = () => {
         </div>
 
         {/* Sticky Header with Search and Chips (Swiggy Style) */}
-        <div className="sticky top-16 z-[60] bg-white/95 backdrop-blur-xl border-b border-gray-50 pb-4 shadow-sm">
+        <div className={`sticky top-16 z-[60] bg-white/95 backdrop-blur-xl border-b border-gray-50 shadow-sm transition-all duration-500 ${isScrolled ? 'pb-2 md:pb-4' : 'pb-4'}`}>
           {/* Search Bar */}
           <div className="px-6 pt-4">
             <div className="relative group">
@@ -119,7 +129,7 @@ const Menu = () => {
             
             {/* Search Suggestions (Mobile Enhancement) */}
             {!searchTerm && (
-              <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar font-bold text-[9px] uppercase tracking-widest text-gray-400">
+              <div className={`mt-3 flex gap-2 overflow-x-auto no-scrollbar font-bold text-[9px] uppercase tracking-widest text-gray-400 transition-all duration-500 overflow-hidden ${isScrolled ? 'max-h-0 opacity-0 mt-0 pointer-events-none md:max-h-20 md:opacity-100 md:mt-3 md:pointer-events-auto' : 'max-h-20 opacity-100'}`}>
                 {['Paneer', 'Biryani', 'Chicken', 'Dal', 'Dessert'].map(sug => (
                   <button 
                     key={sug} 
@@ -133,8 +143,8 @@ const Menu = () => {
             )}
           </div>
 
-          {/* Quick Filters - NEW */}
-          <div className="px-6 pt-4 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth items-center">
+          {/* Quick Filters */}
+          <div className={`px-6 pt-4 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth items-center transition-all duration-500 overflow-hidden ${isScrolled ? 'max-h-0 opacity-0 pt-0 pointer-events-none md:max-h-20 md:opacity-100 md:pt-4 md:pointer-events-auto' : 'max-h-20 opacity-100'}`}>
              <button 
                onClick={() => { setActiveDietary('Veg'); setActiveCategory('All'); }}
                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${activeDietary === 'Veg' ? 'bg-green-500 border-transparent text-white' : 'bg-white border-gray-100 text-gray-400'}`}
@@ -158,7 +168,7 @@ const Menu = () => {
           </div>
 
           {/* Scrolling Chips - Category Filter */}
-          <div className="px-6 pt-4 flex gap-3 overflow-x-auto no-scrollbar scroll-smooth items-center">
+          <div className={`px-6 pt-4 flex gap-3 overflow-x-auto no-scrollbar scroll-smooth items-center transition-all duration-500 overflow-hidden ${isScrolled ? 'max-h-0 opacity-0 pt-0 pointer-events-none md:max-h-20 md:opacity-100 md:pt-4 md:pointer-events-auto' : 'max-h-20 opacity-100'}`}>
              <div className="flex items-center gap-2 pr-4 border-r border-gray-100">
                 <div className="h-8 w-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400"><Star size={14}/></div>
              </div>
