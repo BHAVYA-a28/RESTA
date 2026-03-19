@@ -12,13 +12,13 @@ const withTimeout = (promise: Promise<any>, timeoutMs: number) => {
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!await verifyToken(req)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { id } = params;
+    const { id } = await params;
     const data = await req.json();
     await withTimeout(connectDB(), 5000);
     const item = await Menu.findByIdAndUpdate(id, data, { new: true });
@@ -31,13 +31,13 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!await verifyToken(req)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { id } = params;
+    const { id } = await params;
     await withTimeout(connectDB(), 5000);
     const item = await Menu.findByIdAndDelete(id);
     if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
