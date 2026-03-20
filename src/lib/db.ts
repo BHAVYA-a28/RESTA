@@ -1,11 +1,14 @@
 import mongoose from 'mongoose';
 import dns from 'dns';
 
-// Fix for ECONNREFUSED and DNS SRV issues in some Node.js environments
-if (dns.setDefaultResultOrder) {
-  dns.setDefaultResultOrder('ipv4first');
+// Force DNS to use Google to fix ECONNREFUSED for MongoDB SRV records
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch (e) {
+  console.warn('DNS: Failed to set recursive servers, using default.');
 }
 
+// Standard DB connection with Next.js caching
 async function connectDB() {
   let cached = (global as any).mongoose;
 
@@ -28,11 +31,14 @@ async function connectDB() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      connectTimeoutMS: 10000,
-      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 15000,
+      serverSelectionTimeoutMS: 15000,
+      family: 4, // Force IPv4 to resolve ATLAS DNS on Windows smoothly
     };
 
+    console.log('🔄 DB: Connecting to MongoDB (IPv4 Mode)...');
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      console.log('✅ DB: Successfully connected!');
       return mongoose;
     });
   }

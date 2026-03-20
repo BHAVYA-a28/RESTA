@@ -3,7 +3,15 @@ import mongoose from 'mongoose';
 const OrderSchema = new mongoose.Schema({
   tableNumber: {
     type: String,
-    required: [true, 'Please provide a table number'],
+    required: false, // Optional for delivery
+  },
+  customer: {
+    name: String,
+    email: String,
+    phone: String,
+    address: String,
+    city: String,
+    zip: String,
   },
   items: [{
     productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Menu' },
@@ -16,9 +24,14 @@ const OrderSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  type: {
+    type: String,
+    enum: ['dine-in', 'delivery', 'takeaway'],
+    default: 'dine-in'
+  },
   status: {
     type: String,
-    enum: ['pending', 'preparing', 'served', 'completed', 'cancelled', 'bill_requested'],
+    enum: ['pending', 'preparing', 'served', 'completed', 'cancelled', 'bill_requested', 'out-for-delivery'],
     default: 'pending'
   },
   createdAt: {

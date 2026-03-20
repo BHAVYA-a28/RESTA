@@ -9,15 +9,15 @@ let mockOrders: any[] = [];
 const withTimeout = (promise: Promise<any>, timeoutMs: number) => {
   return Promise.race([
     promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timed out')), timeoutMs))
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timed out')), 15000))
   ]);
 };
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { items, totalAmount, tableNumber } = body;
-
+    const { items, totalAmount, tableNumber, customer, type = 'dine-in' } = body;
+    
     // Transform UI cart state to DB order state safely
     const orderItems = (items || []).map((i: any) => ({
       productId: i._id,
@@ -35,6 +35,8 @@ export async function POST(req: NextRequest) {
         items: orderItems,
         totalAmount,
         tableNumber,
+        customer,
+        type, 
         status: 'pending'
       });
       return NextResponse.json(newOrder, { status: 201 });

@@ -2,30 +2,50 @@
 import React, { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
-import { CheckCircle, CreditCard, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { CheckCircle, CreditCard, ShoppingBag, ShieldCheck, Phone } from 'lucide-react';
+import { createOrder } from '@/api/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Checkout = () => {
   const { cart, clearCart } = useCart();
   const router = useRouter();
   
-  const [formData, setFormData] = useState({ name: '', email: '', address: '', city: '', zip: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '', city: '', zip: '' });
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState('');
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
+    setError('');
+
+    try {
+      const orderPayload = {
+        items: cart,
+        totalAmount: totalPrice,
+        customer: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          zip: formData.zip
+        },
+        type: 'delivery'
+      };
+
+      await createOrder(orderPayload);
       setIsSuccess(true);
       clearCart();
       setTimeout(() => router.push('/'), 5000);
-    }, 2500);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to place order. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (isSuccess) {
@@ -88,10 +108,13 @@ const Checkout = () => {
                     <input required className="bg-gray-50 px-8 py-5 rounded-[28px] outline-none font-bold border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all text-gray-700" placeholder="Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
                     <input required type="email" className="bg-gray-50 px-8 py-5 rounded-[28px] outline-none font-bold border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all text-gray-700" placeholder="Email Address" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
                   </div>
-                  <input required className="w-full bg-gray-50 px-8 py-5 rounded-[28px] outline-none font-bold border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all text-gray-700" placeholder="Delivery Address" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
-                  <div className="grid grid-cols-2 gap-8">
-                    <input required className="bg-gray-50 px-8 py-5 rounded-[28px] outline-none font-bold border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all text-gray-700" placeholder="City" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <input required type="tel" className="bg-gray-50 px-8 py-5 rounded-[28px] outline-none font-bold border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all text-gray-700" placeholder="Phone Number" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
                     <input required className="bg-gray-50 px-8 py-5 rounded-[28px] outline-none font-bold border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all text-gray-700" placeholder="Post Code" value={formData.zip} onChange={(e) => setFormData({...formData, zip: e.target.value})} />
+                  </div>
+                  <input required className="w-full bg-gray-50 px-8 py-5 rounded-[28px] outline-none font-bold border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all text-gray-700" placeholder="Delivery Address" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
+                  <div className="grid grid-cols-1 gap-8">
+                    <input required className="bg-gray-50 px-8 py-5 rounded-[28px] outline-none font-bold border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all text-gray-700" placeholder="City" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} />
                   </div>
                </div>
                
@@ -106,10 +129,12 @@ const Checkout = () => {
                   </div>
                </div>
 
+               {error && <p className="text-red-500 font-bold bg-red-50 p-4 rounded-2xl text-center text-xs border border-red-100">{error}</p>}
+
                <button
                   type="submit"
                   disabled={isProcessing}
-                  className="w-full bg-gray-900 text-white mt-10 py-6 rounded-[32px] font-bold text-xl flex items-center justify-center space-x-3 shadow-2xl hover:bg-primary transition-all disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full bg-gray-900 text-white mt-4 py-5 rounded-[32px] font-bold text-xl flex items-center justify-center space-x-3 shadow-2xl hover:bg-primary transition-all disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <CreditCard size={22} />
                   <span>{isProcessing ? 'Processing Order...' : `Place Order • ₹${totalPrice}`}</span>

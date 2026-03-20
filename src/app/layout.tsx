@@ -7,12 +7,14 @@ import Navbar from '@/components/Navbar';
 import BottomNav from '@/components/BottomNav';
 import CartSidebar from '@/components/CartSidebar';
 import QRTableWatcher from '@/components/QRTableWatcher';
+import Footer from '@/components/Footer';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 
 export const metadata: Metadata = {
-  title: 'Tasty Bites - Exquisite Dining',
-  description: 'Experience the finest gastronomy with our curated menu and elegant atmosphere.',
+  title: 'Tasty Bites | Premium Indian Dining | 123 Food Street',
+  description: 'Experience the finest Indian gastronomy at Tasty Bites. Award-winning cuisine, elegant atmosphere, and fresh farm-to-table ingredients. Open Mon-Sun 11AM-11PM.',
+  keywords: 'Restaurant, Indian Food, Fine Dining, Tasty Bites, Table Reservation, Gourmet, Food District',
 };
 
 export default function RootLayout({
@@ -30,9 +32,10 @@ export default function RootLayout({
               <BottomNav />
               <CartSidebar />
               <QRTableWatcher />
-              <main className="flex-grow pt-16 md:pt-20 pb-36 md:pb-0">
+              <main className="flex-grow pt-16 md:pt-20 pb-12 md:pb-0">
                 {children}
               </main>
+              <Footer />
             </div>
           </CartProvider>
         </AuthProvider>

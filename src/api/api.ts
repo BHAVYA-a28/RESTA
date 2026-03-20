@@ -6,6 +6,7 @@ const api = axios.create({
 
 export const getMenu = () => api.get('/menu');
 export const createReservation = (data: any) => api.post('/reservations', data);
+export const createOrder = (data: any) => api.post('/orders', data);
 export const sendMessage = (data: any) => api.post('/messages', data);
 
 // Admin functions

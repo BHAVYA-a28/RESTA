@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 const withTimeout = (promise: Promise<any>, timeoutMs: number) => {
   return Promise.race([
     promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timed out')), timeoutMs))
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timed out')), 15000))
   ]);
 };
 

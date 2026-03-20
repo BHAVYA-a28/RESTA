@@ -17,6 +17,7 @@
     "framer-motion": "latest",
     "jsonwebtoken": "latest",
     "lucide-react": "latest",
+    "mongodb": "^7.1.0",
     "mongoose": "latest",
     "next": "latest",
     "react": "latest",
