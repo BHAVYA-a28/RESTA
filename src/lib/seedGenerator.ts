@@ -1,102 +1,141 @@
 import { IMenu } from '../models/Menu';
 
-const categories = ['Starters', 'Mains', 'Biryani', 'Breads', 'Desserts', 'Beverages'];
+export const PREMIUM_SEED = [
+  // STARTERS
+  {
+    name: 'Tandoori Malai Broccoli',
+    description: 'Tender broccoli florets marinated in a creamy blend of cheese, yogurt, and cardamom, charred to perfection in our clay oven.',
+    price: 399,
+    category: 'Starters',
+    dietary: 'Veg',
+    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80',
+    isPopular: true,
+    isAvailable: true
+  },
+  {
+    name: 'Zaffrani Paneer Tikka',
+    description: 'Saffron-infused cottage cheese chunks marinated in aromatic spices and hung curd, served with a mint pesto.',
+    price: 449,
+    category: 'Starters',
+    dietary: 'Veg',
+    image: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=800&q=80',
+    isPopular: true,
+    isAvailable: true
+  },
+  {
+    name: 'Old Delhi Seekh Kebab',
+    description: 'Minced lamb mixed with fresh herbs and spices, skewered and grilled. A classic recipe from the streets of Old Delhi.',
+    price: 549,
+    category: 'Starters',
+    dietary: 'Non-Veg',
+    image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=800&q=80',
+    isPopular: true,
+    isAvailable: true
+  },
+  
+  // MAINS
+  {
+    name: 'Butter Chicken Grand Trunk',
+    description: 'Our signature pulled chicken cooked in a velvety tomato gravy enriched with butter and cream. Served with a touch of honey.',
+    price: 599,
+    category: 'Mains',
+    dietary: 'Non-Veg',
+    image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=800&q=80',
+    isPopular: true,
+    isAvailable: true
+  },
+  {
+    name: 'Dal TastyBites 24/7',
+    description: 'Black lentils slow-cooked for 24 hours with spices, butter and cream for that authentic smoky, earthy flavor.',
+    price: 349,
+    category: 'Mains',
+    dietary: 'Veg',
+    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80',
+    isPopular: true,
+    isAvailable: true
+  },
+  {
+    name: 'Nizami Mutton Rogan Josh',
+    description: 'Slow-cooked lamb in a traditional Kashmiri style gravy with ratan jot and aromatic spices.',
+    price: 649,
+    category: 'Mains',
+    dietary: 'Non-Veg',
+    image: 'https://images.unsplash.com/photo-1545243191-240acc07f282?auto=format&fit=crop&w=800&q=80',
+    isPopular: false,
+    isAvailable: true
+  },
 
-const namePool: Record<string, string[]> = {
-  'Starters': ['Paneer Tikka', 'Chicken Tikka', 'Seekh Kebab', 'Samosa', 'Pakora', 'Gobi Manchurian', 'Chilli Chicken', 'Fish Fry', 'Prawns Fry', 'Veg Manchurian', 'Hara Bhara Kabab', 'Tandoori Mushrooms', 'Malai Kabab', 'Corn Salt and Pepper', 'Crispy Corn', 'Spring Rolls', 'Vada Pav', 'Dahi Vada', 'Aloo Chat', 'Chicken 65'],
-  'Mains': ['Butter Chicken', 'Paneer Butter Masala', 'Dal Makhani', 'Palak Paneer', 'Mutton Curry', 'Fish Curry', 'Mix Veg', 'Dum Aloo', 'Bhindi Masala', 'Chana Masala', 'Kadhai Paneer', 'Rogan Josh', 'Methi Matar Malai', 'Malai Kofta', 'Egg Curry', 'Chicken Masala', 'Aloo Gobi', 'Baingan Bharta', 'Navratan Korma', 'Chicken Korma'],
-  'Biryani': ['Hyderabadi Biryani', 'Lucknowi Biryani', 'Egg Biryani', 'Veg Biryani', 'Prawns Biryani', 'Fish Biryani', 'Jeera Rice', 'Steamed Rice', 'Kashmiri Pulao', 'Chicken Dum Biryani', 'Mutton Dum Biryani', 'Keema Biryani', 'Lemon Rice', 'Curd Rice', 'Tamarind Rice', 'Ghee Rice', 'Peas Pulao', 'Mushroom Biryani', 'Paneer Pulao', 'Schezwan Fried Rice'],
-  'Breads': ['Roti', 'Naan', 'Butter Naan', 'Garlic Naan', 'Tandoori Roti', 'Missi Roti', 'Laccha Paratha', 'Stuffed Kulcha', 'Rumali Roti', 'Plain Paratha', 'Aloo Paratha', 'Paneer Paratha', 'Onion Kulcha', 'Amritsari Kulcha', 'Cheese Naan', 'Keema Naan', 'Peshawari Naan', 'Puri', 'Bhatura', 'Tawa Roti'],
-  'Desserts': ['Gulab Jamun', 'Rasmalai', 'Gajar Ka Halwa', 'Kheer', 'Kulfi', 'Ice Cream', 'Brownie with Ice Cream', 'Fruit Salad', 'Moong Dal Halwa', 'Jalebi', 'Rabri', 'Phirni', 'Mishti Doi', 'Rasgulla', 'Kaju Katli', 'Ladoo', 'Basundi', 'Puran Poli', 'Shahi Tukda', 'Chocolate Lava Cake'],
-  'Beverages': ['Masala Chai', 'Lassi', 'Mango Lassi', 'Fresh Lime Soda', 'Cold Coffee', 'Soft Drinks', 'Mineral Water', 'Iced Tea', 'Lemonade', 'Buttermilk', 'Badam Milk', 'Thandai', 'Jaljeera', 'Fruit Juice', 'Milkshake', 'Hot Chocolate', 'Green Tea', 'Ginger Tea', 'Cold Drink', 'Soda']
-};
+  // BIRYANI
+  {
+    name: 'Awadhi Dum Biryani',
+    description: 'Fragrant Basmati rice and tender meat slow-cooked in a sealed pot with exotic spices and saffron.',
+    price: 589,
+    category: 'Biryani',
+    dietary: 'Non-Veg',
+    image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80',
+    isPopular: true,
+    isAvailable: true
+  },
+  {
+    name: 'Tarkari Subz Biryani',
+    description: 'Seasonal vegetables layered with premium Basmati rice, slow-cooked in dums with fresh mint and fried onions.',
+    price: 489,
+    category: 'Biryani',
+    dietary: 'Veg',
+    image: 'https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?auto=format&fit=crop&w=800&q=80',
+    isPopular: false,
+    isAvailable: true
+  },
 
-const descriptors = ['Special', 'Classic', 'Royal', 'Spicy', 'Chef\'s Choice', 'Authentic', 'Homemade', 'Signature', 'Premium', 'Delicious', 'Tasty', 'Gourmet', 'Grand', 'Elite', 'Exquisite', 'Traditional', 'Modern', 'Fusion', 'Zesty', 'Flavorful'];
+  // BREADS
+  {
+    name: 'Truffle Garlic Naan',
+    description: 'Soft leavened bread brushed with truffle oil and topped with roasted garlic and fresh parsley.',
+    price: 149,
+    category: 'Breads',
+    dietary: 'Veg',
+    image: 'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&w=800&q=80',
+    isPopular: true,
+    isAvailable: true
+  },
+  {
+    name: 'Butter Laccha Paratha',
+    description: 'Multi-layered whole wheat bread with generous helpings of butter, cooked in tandoor.',
+    price: 99,
+    category: 'Breads',
+    dietary: 'Veg',
+    image: 'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&w=800&q=80',
+    isPopular: false,
+    isAvailable: true
+  },
 
-const descriptionTemplates = [
-  "A perfect blend of spices and fresh ingredients, cooked to perfection.",
-  "Our signature recipe passed down through generations.",
-  "Freshly prepared with authentic flavors that will tantalize your taste buds.",
-  "A dish that defines our commitment to quality and taste.",
-  "Delicious and satisfying, a must-try for everyone.",
-  "Experience the true taste of tradition in every bite.",
-  "Carefully crafted by our expert chefs using premium ingredients.",
-  "A flavorful journey that you wouldn't want to miss."
+  // DESSERTS
+  {
+    name: 'Gulab Jamun Cheesecake',
+    description: 'A fusion masterpiece combining the traditional Indian Gulab Jamun with a creamy, rich cheesecake base.',
+    price: 349,
+    category: 'Desserts',
+    dietary: 'Veg',
+    image: 'https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&w=800&q=80',
+    isPopular: true,
+    isAvailable: true
+  },
+  {
+    name: 'Baked Rasmalai',
+    description: 'Classic Rasmalai soft patties flavored with saffron and baked with a thick rabri topping.',
+    price: 299,
+    category: 'Desserts',
+    dietary: 'Veg',
+    image: 'https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&w=800&q=80',
+    isPopular: false,
+    isAvailable: true
+  }
 ];
 
-const images: Record<string, string[]> = {
-  'Starters': [
-    'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1589647363535-882ffc1aa3d1?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80'
-  ],
-  'Mains': [
-    'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1545243191-240acc07f282?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1626777552726-4a6b52c67ebf?auto=format&fit=crop&w=800&q=80'
-  ],
-  'Biryani': [
-    'https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?auto=format&fit=crop&w=800&q=80'
-  ],
-  'Breads': [
-    'https://images.unsplash.com/photo-1601303516536-225654037bt5?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&w=800&q=80'
-  ],
-  'Desserts': [
-    'https://images.unsplash.com/photo-1589119908995-c6837fa14848?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&w=800&q=80'
-  ],
-  'Beverages': [
-    'https://images.unsplash.com/photo-1544145945-f904253d0c7b?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1536939459926-301728717817?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=800&q=80'
-  ]
-};
-
-export function generateSeedItems(countPerCategory: number = 20): any[] {
-  const items: any[] = [];
+export function generateSeedItems(countPerCategory: number = 5): any[] {
+  // We return the premium seed first, then pad with generated ones if needed
+  const items = [...PREMIUM_SEED];
   
-  categories.forEach(category => {
-    const names = namePool[category];
-    for (let i = 0; i < countPerCategory; i++) {
-        const baseName = names[i % names.length];
-        const descriptor = descriptors[Math.floor(Math.random() * descriptors.length)];
-        const name = `${descriptor} ${baseName} ${Math.floor(i / names.length) > 0 ? (Math.floor(i/names.length) + 1) : ''}`.trim();
-        
-        const description = descriptionTemplates[Math.floor(Math.random() * descriptionTemplates.length)];
-        
-        let price = 0;
-        switch(category) {
-            case 'Starters': price = 250 + Math.floor(Math.random() * 200); break;
-            case 'Mains': price = 350 + Math.floor(Math.random() * 400); break;
-            case 'Biryani': price = 400 + Math.floor(Math.random() * 300); break;
-            case 'Breads': price = 40 + Math.floor(Math.random() * 80); break;
-            case 'Desserts': price = 150 + Math.floor(Math.random() * 150); break;
-            case 'Beverages': price = 80 + Math.floor(Math.random() * 120); break;
-        }
-        
-        const dietary = (category === 'Beverages' || category === 'Desserts' || category === 'Breads' || baseName.includes('Paneer') || baseName.includes('Veg') || baseName.includes('Dal') || baseName.includes('Aloo')) ? 'Veg' : 'Non-Veg';
-        
-        const categoryImages = images[category] || images['Starters'];
-        const image = categoryImages[Math.floor(Math.random() * categoryImages.length)];
-        
-        items.push({
-            name,
-            description,
-            price,
-            category,
-            dietary,
-            image,
-            isPopular: Math.random() > 0.7,
-            isAvailable: true
-        });
-    }
-  });
-  
+  // Minimal padding to keep it professional
   return items;
 }

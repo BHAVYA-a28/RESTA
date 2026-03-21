@@ -54,7 +54,7 @@ const Footer = () => {
             <ul className="space-y-5">
               <li className="flex items-start gap-4">
                 <div className="p-3 bg-white/5 rounded-xl text-primary border border-white/5"><MapPin size={18} /></div>
-                <p className="text-gray-400 text-sm font-medium leading-loose">123 Food Street, Delicious City, <br/>GA 30303, United States</p>
+                <p className="text-gray-400 text-sm font-medium leading-loose">Plot 45, Sector 18, <br/>Gurugram, Haryana 122015, India</p>
               </li>
               <li className="flex items-center gap-4">
                 <div className="p-3 bg-white/5 rounded-xl text-primary border border-white/5"><Phone size={18} /></div>
@@ -62,7 +62,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-4">
                 <div className="p-3 bg-white/5 rounded-xl text-primary border border-white/5"><Mail size={18} /></div>
-                <p className="text-gray-400 text-sm font-bold tracking-tight">hello@tastybites.com</p>
+                <p className="text-gray-400 text-sm font-bold tracking-tight">dining@tastybites.in</p>
               </li>
             </ul>
           </div>

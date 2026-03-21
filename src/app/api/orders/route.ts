@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import { Order } from '@/models/Order';
-import { Menu } from '@/models/Menu'; // Required for ref
+import { Menu } from '@/models/Menu';
 
 let mockOrders: any[] = [];
+const IS_DEMO = process.env.DEMO_MODE === 'true';
 
-// Helper to wrap promise with a hard timeout for DNS/slow connection issues
+// Helper to wrap promise with a hard timeout
 const withTimeout = (promise: Promise<any>, timeoutMs: number) => {
   return Promise.race([
     promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timed out')), 15000))
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timed out')), timeoutMs))
   ]);
 };
 
@@ -18,6 +19,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { items, totalAmount, tableNumber, customer, type = 'dine-in' } = body;
     
+    // Server-side Validation
+    if (!items || items.length === 0) {
+      return NextResponse.json({ error: 'Order must contain at least one item' }, { status: 400 });
+    }
+
+    if (type === 'delivery' && (!customer || !customer.address || !customer.phone)) {
+      return NextResponse.json({ error: 'Delivery orders require address and phone number' }, { status: 400 });
+    }
+
     // Transform UI cart state to DB order state safely
     const orderItems = (items || []).map((i: any) => ({
       productId: i._id,
@@ -28,8 +38,8 @@ export async function POST(req: NextRequest) {
     }));
 
     try {
-      // If DB doesn't respond within 3 seconds, we bail to Mock for a smooth Guest experience
-      await withTimeout(connectDB(), 3000);
+      // Connect to DB with 10s timeout
+      await withTimeout(connectDB(), 10000);
       
       const newOrder = await Order.create({
         items: orderItems,
@@ -39,21 +49,25 @@ export async function POST(req: NextRequest) {
         type, 
         status: 'pending'
       });
+      console.log(`✅ Order Created: ${newOrder._id} (Type: ${type})`);
       return NextResponse.json(newOrder, { status: 201 });
     } catch (dbError: any) {
-      console.error('Bailing to Mock Ordering:', dbError.message);
+      console.error('Order API DB Error:', dbError.message);
       
-      const newMockOrder = {
-        _id: 'ORDER_DEMO_' + Math.random().toString(36).substr(2, 9),
-        items: orderItems,
-        totalAmount,
-        tableNumber: tableNumber || 'Unknown',
-        status: 'pending (Demo Mode)',
-        createdAt: new Date().toISOString()
-      };
-      
-      mockOrders.unshift(newMockOrder); 
-      return NextResponse.json({ ...newMockOrder, isDemo: true }, { status: 201 });
+      if (IS_DEMO) {
+        const newMockOrder = {
+          _id: 'ORDER_DEMO_' + Math.random().toString(36).substr(2, 9),
+          items: orderItems,
+          totalAmount,
+          tableNumber: tableNumber || 'Unknown',
+          status: 'pending (Demo Mode)',
+          createdAt: new Date().toISOString()
+        };
+        mockOrders.unshift(newMockOrder); 
+        return NextResponse.json({ ...newMockOrder, isDemo: true }, { status: 201 });
+      }
+
+      return NextResponse.json({ error: 'Database service unavailable. Please try again later.' }, { status: 503 });
     }
   } catch (error: any) {
     console.error('Order API Critical Error:', error);
@@ -66,14 +80,12 @@ export async function PATCH(req: NextRequest) {
     const { tableNumber, orderId, status } = await req.json();
     
     try {
-      await withTimeout(connectDB(), 3000);
+      await connectDB();
       
       if (orderId) {
-        // Individual order update
         const updated = await Order.findByIdAndUpdate(orderId, { $set: { status } }, { new: true });
         return NextResponse.json(updated);
       } else if (tableNumber) {
-        // Bulk table update (e.g., bill request)
         await Order.updateMany(
           { tableNumber, status: { $nin: ['completed', 'cancelled'] } },
           { $set: { status: status || 'bill_requested' } }
@@ -82,20 +94,21 @@ export async function PATCH(req: NextRequest) {
       }
       return NextResponse.json({ error: 'Missing tableNumber or orderId' }, { status: 400 });
     } catch (e: any) {
-      // Mock fallback
-      if (orderId) {
-        const order = mockOrders.find(o => o._id === orderId);
-        if (order) order.status = status;
-        return NextResponse.json({ success: true, isDemo: true });
-      } else if (tableNumber) {
-        mockOrders.forEach(o => {
-          if (o.tableNumber === tableNumber && !['completed', 'cancelled'].includes(o.status)) {
-            o.status = status || 'bill_requested';
-          }
-        });
-        return NextResponse.json({ success: true, isDemo: true });
+      if (IS_DEMO) {
+        if (orderId) {
+          const order = mockOrders.find(o => o._id === orderId);
+          if (order) order.status = status;
+          return NextResponse.json({ success: true, isDemo: true });
+        } else if (tableNumber) {
+          mockOrders.forEach(o => {
+            if (o.tableNumber === tableNumber && !['completed', 'cancelled'].includes(o.status)) {
+              o.status = status || 'bill_requested';
+            }
+          });
+          return NextResponse.json({ success: true, isDemo: true });
+        }
       }
-      return NextResponse.json({ error: 'Fallback failed' }, { status: 500 });
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
     }
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -109,20 +122,23 @@ export async function GET(req: NextRequest) {
 
     let dbOrders = [];
     try {
-      await withTimeout(connectDB(), 3000);
+      await connectDB();
       const query = tableNum ? { tableNumber: tableNum } : {};
-      dbOrders = await Order.find(query).sort({ createdAt: -1 });
+      dbOrders = await Order.find(query).sort({ createdAt: -1 }).limit(50);
     } catch (e) {
-      console.warn('GET /orders: DB offline, showing mock data only.');
+      if (!IS_DEMO) return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
     }
 
-    let filteredMocks = mockOrders;
-    if (tableNum) {
-      filteredMocks = mockOrders.filter(o => o.tableNumber === tableNum);
+    if (IS_DEMO) {
+      let filteredMocks = mockOrders;
+      if (tableNum) {
+        filteredMocks = mockOrders.filter(o => o.tableNumber === tableNum);
+      }
+      const combined = [...filteredMocks, ...dbOrders];
+      return NextResponse.json(combined);
     }
 
-    const combined = [...filteredMocks, ...dbOrders];
-    return NextResponse.json(combined);
+    return NextResponse.json(dbOrders);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

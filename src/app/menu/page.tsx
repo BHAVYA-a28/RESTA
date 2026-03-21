@@ -17,6 +17,42 @@ interface MenuItem {
   isPopular?: boolean;
 }
 
+const DEMO_ITEMS: MenuItem[] = [
+  {
+    _id: 'demo-1',
+    name: 'Tandoori Malai Broccoli',
+    description: 'Tender broccoli florets marinated in a creamy blend of cheese, yogurt, and cardamom, charred to perfection.',
+    price: 399,
+    category: 'Starters',
+    dietary: 'Veg',
+    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80',
+    isPopular: true,
+    isAvailable: true
+  },
+  {
+    _id: 'demo-2',
+    name: 'Butter Chicken Grand Trunk',
+    description: 'Our signature pulled chicken cooked in a velvety tomato gravy enriched with butter and cream.',
+    price: 599,
+    category: 'Mains',
+    dietary: 'Non-Veg',
+    image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=800&q=80',
+    isPopular: true,
+    isAvailable: true
+  },
+  {
+    _id: 'demo-3',
+    name: 'Awadhi Dum Biryani',
+    description: 'Fragrant Basmati rice and tender meat slow-cooked in a sealed pot with exotic spices.',
+    price: 549,
+    category: 'Biryani',
+    dietary: 'Non-Veg',
+    image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80',
+    isPopular: true,
+    isAvailable: true
+  }
+];
+
 const Menu = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,9 +68,15 @@ const Menu = () => {
     const fetchMenu = async () => {
       try {
         const response = await getMenu();
-        setMenuItems(response.data);
+        if (response.data && response.data.length > 0) {
+          setMenuItems(response.data);
+        } else {
+          // If DB is empty, show demo items to keep UI premium
+          setMenuItems(DEMO_ITEMS);
+        }
       } catch (error) {
         console.error('Error fetching menu:', error);
+        setMenuItems(DEMO_ITEMS); // Fallback on error too
       } finally {
         setLoading(false);
       }

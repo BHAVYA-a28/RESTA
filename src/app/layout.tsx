@@ -12,9 +12,9 @@ import Footer from '@/components/Footer';
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 
 export const metadata: Metadata = {
-  title: 'Tasty Bites | Premium Indian Dining | 123 Food Street',
-  description: 'Experience the finest Indian gastronomy at Tasty Bites. Award-winning cuisine, elegant atmosphere, and fresh farm-to-table ingredients. Open Mon-Sun 11AM-11PM.',
-  keywords: 'Restaurant, Indian Food, Fine Dining, Tasty Bites, Table Reservation, Gourmet, Food District',
+  title: 'Tasty Bites | Premium Indian Dining | Gurugram',
+  description: 'Experience the finest Indian gastronomy at Tasty Bites. Award-winning cuisine, elegant atmosphere, and fresh farm-to-table ingredients in the heart of Gurugram. Open Mon-Sun 11AM-11PM.',
+  keywords: 'Restaurant, Indian Food, Fine Dining, Tasty Bites, Table Reservation, Gourmet, Gurugram Food',
 };
 
 export default function RootLayout({
@@ -35,7 +35,6 @@ export default function RootLayout({
               <main className="flex-grow pt-16 md:pt-20 pb-12 md:pb-0">
                 {children}
               </main>
-              <Footer />
             </div>
           </CartProvider>
         </AuthProvider>
